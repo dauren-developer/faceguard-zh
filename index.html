@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#07090D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Face Guard">
+<title>Face Guard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="face-api.min.js"></script>
+<style>
+:root{
+  --bg:#07090D; --bg2:#0C0F15; --panel:#11151C; --panel2:#161B24;
+  --line:#232933; --line2:#2E3642;
+  --ink:#E7ECF3; --mut:#7E8A9C; --mut2:#515C6B;
+  --cy:#2FE0C9; --cy-d:#17B39E; --cy-l:rgba(47,224,201,.12); --cy-m:rgba(47,224,201,.24);
+  --grn:#3DD16F; --grn-l:rgba(61,209,111,.14);
+  --red:#FF5A5F; --red-l:rgba(255,90,95,.14);
+  --amb:#FFB547; --amb-l:rgba(255,181,71,.14);
+  --disp:'Space Grotesk',system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --body:'Inter',system-ui,sans-serif;
+  --nav:66px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;
+  min-height:100vh;min-height:100dvh;overflow-x:hidden}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{background:none;border:none;cursor:pointer;padding:0}
+input,select,textarea{-webkit-user-select:text;user-select:text}
+:focus-visible{outline:2px solid var(--cy);outline-offset:2px}
+
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+  background-image:
+    linear-gradient(rgba(47,224,201,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(47,224,201,.025) 1px,transparent 1px);
+  background-size:34px 34px}
+.app{position:relative;z-index:1;max-width:1180px;margin:0 auto;min-height:100vh;min-height:100dvh;
+  display:flex;flex-direction:column}
+
+/* ---------- header / tabs ---------- */
+header{position:sticky;top:0;z-index:40;background:rgba(7,9,13,.88);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line)}
+.hb{display:flex;align-items:center;gap:11px;padding:13px 18px}
+.logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(145deg,var(--cy),var(--cy-d));
+  display:grid;place-items:center;flex:none;box-shadow:0 0 0 1px rgba(47,224,201,.3),0 0 18px rgba(47,224,201,.25)}
+.logo svg{width:19px;height:19px;stroke:#04110E;fill:none;stroke-width:2.1}
+.htitle{flex:1;min-width:0}
+.htitle b{display:block;font-family:var(--disp);font-weight:700;font-size:16.5px;letter-spacing:.03em;line-height:1.1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.htitle span{font-family:var(--mono);font-size:10.5px;color:var(--mut);letter-spacing:.08em;text-transform:uppercase}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.hstat{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10.5px;color:var(--mut);
+  padding:6px 10px;border:1px solid var(--line);border-radius:100px;background:var(--panel)}
+nav.tabs{display:flex;gap:2px;padding:0 10px;overflow-x:auto;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{padding:12px 15px;font-size:13.5px;font-weight:600;color:var(--mut);white-space:nowrap;
+  border-bottom:2px solid transparent;display:flex;align-items:center;gap:7px;font-family:var(--body)}
+nav.tabs button svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8}
+nav.tabs button.on{color:var(--cy);border-bottom-color:var(--cy)}
+
+main{flex:1;padding:18px 0 60px}
+.pad{padding:0 18px}
+.page{display:none}.page.on{display:block}
+h2.t{font-family:var(--disp);font-weight:700;font-size:20px;letter-spacing:.01em;margin:0 0 4px}
+p.sub{color:var(--mut);font-size:13.5px;margin:0 0 18px;max-width:64ch}
+h3.s{font-family:var(--mono);font-weight:600;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--cy);margin:24px 0 11px}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px;margin-bottom:12px}
+.cols{display:grid;gap:12px}
+@media(min-width:760px){.cols.staff{grid-template-columns:repeat(3,1fr)}.cols.two{grid-template-columns:1fr 1fr}}
+@media(min-width:1080px){.cols.staff{grid-template-columns:repeat(4,1fr)}}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:13px}
+.kpi small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+.kpi b{display:block;font-family:var(--disp);font-weight:700;font-size:22px;margin-top:5px}
+
+label.f{display:block;margin-bottom:14px}
+label.f>span{display:block;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--mut);margin-bottom:7px}
+input,select,textarea{width:100%;padding:12px 13px;border:1px solid var(--line2);border-radius:10px;
+  background:var(--bg2);color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cy)}
+select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--mut) 50%),linear-gradient(135deg,var(--mut) 50%,transparent 50%);
+  background-position:calc(100% - 18px) 21px,calc(100% - 13px) 21px;background-size:5px 5px;background-repeat:no-repeat;padding-right:38px}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border-radius:11px;
+  font-weight:700;font-size:14.5px;background:var(--cy);color:#04110E;transition:filter .15s,transform .1s}
+.btn:active{filter:brightness(1.08);transform:scale(.99)}
+.btn.gh{background:var(--panel2);border:1px solid var(--line2);color:var(--ink)}
+.btn.gh:active{background:var(--line)}
+.btn.sm{padding:9px 13px;font-size:13px;width:auto;border-radius:9px}
+.btn.danger{background:var(--red);color:#fff}
+.btn:disabled{opacity:.4}
+.rowbtns{display:flex;gap:9px;flex-wrap:wrap}
+.rowbtns .btn{width:auto;flex:1}
+
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:7px;font-size:11.5px;font-weight:700;
+  font-family:var(--mono)}
+.b-ok{background:var(--grn-l);color:var(--grn)}
+.b-no{background:var(--red-l);color:var(--red)}
+.b-amb{background:var(--amb-l);color:var(--amb)}
+.b-dim{background:var(--panel2);color:var(--mut)}
+.b-cy{background:var(--cy-l);color:var(--cy)}
+
+.rowitem{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
+.rowitem:last-child{border-bottom:none}
+.rowitem .main{flex:1;min-width:0}
+.rowitem .main b{display:block;font-weight:600;font-size:14.5px}
+.rowitem .main span{display:block;font-size:12px;color:var(--mut);margin-top:1px;font-family:var(--mono)}
+
+.x{width:32px;height:32px;border-radius:50%;border:1px solid var(--line2);background:var(--panel2);
+  display:grid;place-items:center;color:var(--mut);font-size:16px;flex:none}
+.x:active{background:var(--line)}
+
+.note{background:var(--cy-l);border:1px solid var(--cy-m);border-radius:11px;padding:12px 13px;font-size:13px;
+  color:#9FF4E6;margin-top:12px}
+.note.warn{background:var(--amb-l);border-color:rgba(255,181,71,.3);color:#FFD699}
+.note.err{background:var(--red-l);border-color:rgba(255,90,95,.3);color:#FFB3B5}
+.empty{text-align:center;padding:40px 18px;color:var(--mut)}
+.empty b{display:block;font-family:var(--disp);font-weight:700;font-size:17px;color:var(--ink);margin-bottom:6px}
+.mini{font-size:12px;color:var(--mut)}
+.mono{font-family:var(--mono)}
+
+/* ---------- staff card ---------- */
+.scard{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:14px;position:relative}
+.scard .av{width:100%;aspect-ratio:1;border-radius:11px;object-fit:cover;background:var(--panel2);margin-bottom:10px;
+  border:1px solid var(--line2)}
+.scard .av.ph{display:grid;place-items:center;color:var(--mut2)}
+.scard b{display:block;font-size:14px;font-weight:600}
+.scard .st{margin-top:8px;display:flex;justify-content:space-between;align-items:center}
+
+/* ---------- sheet ---------- */
+.ov{position:fixed;inset:0;z-index:80;background:rgba(3,4,6,.72);display:none;align-items:flex-end;justify-content:center}
+.ov.on{display:flex}
+.sheet{width:100%;max-width:560px;background:var(--bg2);border:1px solid var(--line);border-bottom:none;
+  border-radius:20px 20px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));
+  max-height:92vh;max-height:92dvh;overflow-y:auto;animation:up .24s cubic-bezier(.2,.8,.3,1) both}
+@media(min-width:640px){.ov{align-items:center}.sheet{border-radius:18px;border-bottom:1px solid var(--line);max-height:86vh}}
+@keyframes up{from{transform:translateY(16px);opacity:.3}to{transform:none;opacity:1}}
+.sh{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:15px}
+.sh b{font-family:var(--disp);font-weight:700;font-size:17px}
+.sh span{display:block;font-size:12px;color:var(--mut);font-family:var(--mono);margin-top:2px}
+
+/* ================= KIOSK ================= */
+.kiosk{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:26px 20px;position:relative;overflow:hidden}
+.kiosk .klogo{display:flex;align-items:center;gap:10px;margin-bottom:22px}
+.kiosk .klogo b{font-family:var(--disp);font-weight:700;font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.kclock{font-family:var(--mono);font-size:13px;color:var(--mut2);margin-bottom:24px;letter-spacing:.04em}
+
+.scanwrap{position:relative;width:min(78vw,360px);aspect-ratio:3/4;border-radius:26px;overflow:hidden;
+  background:#000;border:1px solid var(--line2);box-shadow:0 0 0 1px rgba(47,224,201,.08),0 30px 60px -20px rgba(0,0,0,.6)}
+.scanwrap video,.scanwrap canvas,.scanwrap img.shot{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.scanwrap video{transform:scaleX(-1)}
+.corner{position:absolute;width:30px;height:30px;border-color:var(--cy);border-style:solid;opacity:.9;z-index:3}
+.corner.tl{top:12px;left:12px;border-width:3px 0 0 3px;border-radius:8px 0 0 0}
+.corner.tr{top:12px;right:12px;border-width:3px 3px 0 0;border-radius:0 8px 0 0}
+.corner.bl{bottom:12px;left:12px;border-width:0 0 3px 3px;border-radius:0 0 0 8px}
+.corner.br{bottom:12px;right:12px;border-width:0 3px 3px 0;border-radius:0 0 8px 0}
+.scanline{position:absolute;left:8%;right:8%;height:2px;background:linear-gradient(90deg,transparent,var(--cy),transparent);
+  box-shadow:0 0 14px 2px rgba(47,224,201,.8);z-index:3;animation:scan 2.6s ease-in-out infinite}
+@keyframes scan{0%{top:10%}50%{top:88%}100%{top:10%}}
+.scanstate{position:absolute;left:0;right:0;bottom:0;padding:16px 14px 14px;z-index:4;text-align:center;
+  background:linear-gradient(to top,rgba(0,0,0,.75),transparent);font-family:var(--mono);font-size:12.5px;
+  letter-spacing:.04em;color:#B9F7EC}
+.found-ring{position:absolute;inset:0;z-index:3;border:3px solid var(--grn);border-radius:26px;box-shadow:0 0 0 6px rgba(61,209,111,.18);
+  display:none}
+.found-ring.on{display:block}
+
+.resultcard{width:min(84vw,380px);margin-top:22px;text-align:center}
+.resultcard .nm{font-family:var(--disp);font-weight:700;font-size:21px;margin:14px 0 3px}
+.resultcard .tm{font-family:var(--mono);font-size:13px;color:var(--mut)}
+.bigbtns{display:flex;gap:12px;margin-top:20px;width:min(84vw,380px)}
+.bigbtn{flex:1;padding:22px 10px;border-radius:18px;font-family:var(--disp);font-weight:700;font-size:17px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;transition:transform .1s}
+.bigbtn:active{transform:scale(.96)}
+.bigbtn svg{width:30px;height:30px;stroke:currentColor;fill:none;stroke-width:2.2}
+.bigbtn.in{background:linear-gradient(160deg,#3DD16F,#1F9E52);color:#042B14}
+.bigbtn.out{background:linear-gradient(160deg,#FF5A5F,#C62E33);color:#2B0607}
+
+.kiosklinks{margin-top:26px;display:flex;gap:10px}
+.klink{font-family:var(--mono);font-size:11.5px;color:var(--mut);border:1px solid var(--line);background:var(--panel);
+  padding:9px 14px;border-radius:100px}
+.klink:active{background:var(--panel2)}
+
+.flash{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;flex-direction:column;
+  background:rgba(4,6,9,.94);gap:14px}
+.flash.on{display:flex}
+.flash .ic{width:84px;height:84px;border-radius:50%;display:grid;place-items:center}
+.flash .ic svg{width:42px;height:42px;stroke:#04110E;fill:none;stroke-width:3}
+.flash b{font-family:var(--disp);font-weight:700;font-size:19px}
+.flash span{font-family:var(--mono);font-size:12.5px;color:var(--mut)}
+
+.pickbox{width:min(90vw,420px)}
+.picklist{max-height:50vh;overflow-y:auto;margin-top:12px}
+.pickrow{display:flex;align-items:center;gap:12px;padding:11px 8px;border-radius:11px}
+.pickrow:active{background:var(--panel2)}
+.pickrow img{width:40px;height:40px;border-radius:9px;object-fit:cover;background:var(--panel2);flex:none}
+.pickrow b{font-size:14px;font-weight:600}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="app" id="shellApp" style="display:none">
+<header>
+  <div class="hb">
+    <div class="logo"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></div>
+    <div class="htitle"><b>FACE GUARD</b><span id="orgTag">zhaksylyk</span></div>
+    <div class="hstat"><span class="dot" id="syncDot" style="background:var(--mut2)"></span><span id="syncTxt">—</span></div>
+  </div>
+  <nav class="tabs" id="tabs"></nav>
+</header>
+<main>
+  <section class="page" id="p-kiosk"></section>
+  <section class="page" id="p-staff"></section>
+  <section class="page" id="p-log"></section>
+  <section class="page" id="p-settings"></section>
+</main>
+</div>
+
+<div class="ov" id="ov" onclick="if(event.target===this)closeSheet()"><div class="sheet" id="sheet"></div></div>
+<div class="flash" id="flash"></div>
+
+<script>
+/* ============================================================
+   FACE GUARD — учёт присутствия по лицу
+   Отдельный продукт поверх общей базы Supabase с системой «Жаксылык»
+   ============================================================ */
+
+const CFG_DEFAULT = { startHour:9, startMin:0, graceMin:15, matchThreshold:0.52 };
+
+const DB = { staff:[], days:{}, cfg:{...CFG_DEFAULT} };
+let tab='kiosk';
+let modelsReady=false, stream=null, scanTimer=null, lastSeenId=null, stableCount=0;
+let pendingMatch=null; // {id,name,shotDataUrl}
+
+const pad2=n=>String(n).padStart(2,'0');
+const todayKey=()=>{const d=new Date();return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;};
+const nowHM=()=>{const d=new Date();return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;};
+const fmtHM=iso=>iso||'—';
+const minsOf=t=>{if(!t)return null;const[h,m]=t.split(':').map(Number);return h*60+m;};
+const fmtHours=h=>h==null?'—':(Math.round(h*100)/100).toFixed(2).replace('.',',');
+function dayOf(k){ if(!DB.days[k]) DB.days[k]={}; return DB.days[k]; }
+function recOf(k,sid){ const d=dayOf(k); if(!d[sid]) d[sid]={in:null,out:null,late:false,hoursAuto:null,hoursFinal:null,overridden:false,reason:''}; return d[sid]; }
+
+/* ================= ХРАНЕНИЕ ================= */
+const KEY='faceguard_v1';
+let storeOK=true;
+function save(){ try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){storeOK=false;} cloudQueue(); }
+function load(){ try{const r=localStorage.getItem(KEY); if(!r)return false; const o=JSON.parse(r);
+  if(o&&o.staff&&o.days){ DB.staff=o.staff; DB.days=o.days; DB.cfg=Object.assign({...CFG_DEFAULT},o.cfg||{}); return true; } }
+  catch(e){storeOK=false;} return false; }
+
+/* ================= ОБЛАКО (тот же Supabase-проект, своя таблица) ================= */
+const SUPABASE_URL = "";   // вписать Project URL
+const SUPABASE_KEY = "";   // вписать ключ anon public (вкладка Legacy)
+const CLOUD={rev:0,applying:false,timer:null,state:'off'};
+const AKEY='fg_auth_v1';
+const AUTH={token:'',refresh:'',email:'',exp:0};
+function authLoad(){ try{Object.assign(AUTH,JSON.parse(localStorage.getItem(AKEY)||'{}'));}catch(e){} }
+function authSave(){ try{localStorage.setItem(AKEY,JSON.stringify(AUTH));}catch(e){} }
+function authClear(){ AUTH.token='';AUTH.refresh='';AUTH.email='';AUTH.exp=0; try{localStorage.removeItem(AKEY);}catch(e){} }
+const H=()=>({apikey:SUPABASE_KEY,Authorization:'Bearer '+(AUTH.token||SUPABASE_KEY),'Content-Type':'application/json'});
+async function signIn(email,pass){
+  const r=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`,{method:'POST',
+    headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+  const a=await r.json();
+  if(!r.ok) throw new Error(a.error_description||a.msg||'Не удалось войти');
+  AUTH.token=a.access_token; AUTH.refresh=a.refresh_token; AUTH.email=email;
+  AUTH.exp=Date.now()+(a.expires_in||3600)*1000; authSave(); return true;
+}
+async function refreshToken(){
+  if(!AUTH.refresh) return false;
+  try{ const r=await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`,{method:'POST',
+      headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:AUTH.refresh})});
+    const a=await r.json(); if(!r.ok)return false;
+    AUTH.token=a.access_token; AUTH.refresh=a.refresh_token; AUTH.exp=Date.now()+(a.expires_in||3600)*1000; authSave(); return true;
+  }catch(e){ return false; }
+}
+async function ensureToken(){ if(!AUTH.token)return false; if(Date.now()>AUTH.exp-60000) return await refreshToken(); return true; }
+function cloudOn(){ return !!(SUPABASE_URL && SUPABASE_KEY); }
+function syncBadge(){
+  const dot=document.getElementById('syncDot'), txt=document.getElementById('syncTxt'); if(!dot)return;
+  const m={off:['var(--mut2)','локально'],ok:['var(--grn)','синхрон.'],sync:['var(--amb)','отправка'],err:['var(--red)','нет связи']};
+  const[c,t]=m[CLOUD.state]||m.off; dot.style.background=c; txt.textContent=t;
+}
+async function cloudPull(){
+  if(!cloudOn())return;
+  if(!await ensureToken()){ CLOUD.state='err'; syncBadge(); return; }
+  try{
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/faceguard_state?id=eq.1&select=rev,data`,{headers:H()});
+    if(!r.ok) throw 0;
+    const a=await r.json();
+    if(!a.length){ await cloudPush(); return; }
+    if(a[0].rev>CLOUD.rev){ CLOUD.applying=true;
+      const o=a[0].data||{}; DB.staff=o.staff||[]; DB.days=o.days||{}; DB.cfg=Object.assign({...CFG_DEFAULT},o.cfg||{});
+      CLOUD.rev=a[0].rev; CLOUD.applying=false; render(); }
+    CLOUD.state='ok'; syncBadge();
+  }catch(e){ CLOUD.state='err'; syncBadge(); }
+}
+async function cloudPush(){
+  if(!cloudOn()||CLOUD.applying) return;
+  if(!await ensureToken()){ CLOUD.state='err'; syncBadge(); return; }
+  CLOUD.state='sync'; syncBadge();
+  try{
+    const r=await fetch(`${SUPABASE_URL}/rest/v1/faceguard_state?on_conflict=id`,{method:'POST',
+      headers:{...H(),Prefer:'resolution=merge-duplicates,return=representation'},
+      body:JSON.stringify({id:1,rev:CLOUD.rev+1,data:{staff:DB.staff,days:DB.days,cfg:DB.cfg},who:AUTH.email||'kiosk',updated_at:new Date().toISOString()})});
+    if(!r.ok) throw 0;
+    const a=await r.json(); if(a&&a[0]) CLOUD.rev=a[0].rev;
+    CLOUD.state='ok';
+  }catch(e){ CLOUD.state='err'; }
+  syncBadge();
+}
+let pushT=null;
+function cloudQueue(){ if(!cloudOn()||CLOUD.applying)return; clearTimeout(pushT); pushT=setTimeout(cloudPush,700); }
+function cloudStart(){
+  if(!cloudOn()){ CLOUD.state='off'; syncBadge(); return; }
+  authLoad();
+  if(!AUTH.token){ CLOUD.state='err'; syncBadge(); loginScreen(); return; }
+  cloudPull();
+  clearInterval(CLOUD.timer); CLOUD.timer=setInterval(cloudPull,10000);
+}
+function loginScreen(){
+  document.getElementById('shellApp').style.display='none';
+  sheet(`<div style="text-align:center;margin-bottom:20px">
+      <div style="width:60px;height:60px;border-radius:16px;margin:0 auto 14px;background:linear-gradient(145deg,var(--cy),var(--cy-d));
+        display:grid;place-items:center;box-shadow:0 0 0 1px rgba(47,224,201,.3),0 0 22px rgba(47,224,201,.3)">
+        <svg viewBox="0 0 24 24" style="width:30px;height:30px;stroke:#04110E;fill:none;stroke-width:2.1">
+          <path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></div>
+      <div style="font-family:var(--disp);font-weight:700;font-size:19px;letter-spacing:.04em">FACE GUARD</div>
+      <div class="mini mono" style="margin-top:3px">вход в систему</div></div>
+    <label class="f"><span>Почта</span><input id="lgE" type="email" placeholder="kiosk@zhaksylyk.kz"></label>
+    <label class="f"><span>Пароль</span><input id="lgP" type="password"></label>
+    <div class="note err" id="lgErr" style="display:none"></div>
+    <button class="btn" id="lgB" onclick="doLogin()">Войти</button>`);
+  document.getElementById('ov').classList.add('on');
+}
+async function doLogin(){
+  const e=document.getElementById('lgE').value.trim(), p=document.getElementById('lgP').value;
+  const err=document.getElementById('lgErr'), btn=document.getElementById('lgB');
+  if(!e||!p){ err.textContent='Введите почту и пароль'; err.style.display='block'; return; }
+  btn.disabled=true; btn.textContent='Вхожу…';
+  try{ await signIn(e,p); closeSheet(); document.getElementById('shellApp').style.display='flex';
+    await cloudPull(); clearInterval(CLOUD.timer); CLOUD.timer=setInterval(cloudPull,10000); boot2(); }
+  catch(ex){ err.textContent=String(ex.message||ex); err.style.display='block'; btn.disabled=false; btn.textContent='Войти'; }
+}
+function logout(){ authClear(); CLOUD.state='err'; loginScreen(); }
+
+/* ================= НАВИГАЦИЯ ================= */
+const IC={
+ kiosk:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="12" cy="11" r="3"/><path d="M8 20l.5-2h7l.5 2"/>',
+ staff:'<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6"/><circle cx="17" cy="9" r="2.3"/><path d="M15.2 13c2.7.3 4.8 2.5 4.8 5.3"/>',
+ log:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/>',
+ settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.6V21a2 2 0 11-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.6-1H3a2 2 0 110-4h.1a1.7 1.7 0 001.6-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3h0a1.7 1.7 0 001-1.6V3a2 2 0 114 0v.1a1.7 1.7 0 001 1.6 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9v0a1.7 1.7 0 001.6 1H21a2 2 0 110 4h-.1a1.7 1.7 0 00-1.6 1z"/>'};
+const TABS=[['kiosk','Кіоск'],['staff','Қызметкерлер'],['log','Күнделік'],['settings','Баптаулар']];
+function drawNav(){
+  document.getElementById('tabs').innerHTML=TABS.map(([k,t])=>
+    `<button class="${tab===k?'on':''}" onclick="go('${k}')"><svg viewBox="0 0 24 24">${IC[k]}</svg>${t}</button>`).join('');
+}
+function go(k){ tab=k; drawNav(); document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.getElementById('p-'+k).classList.add('on'); render();
+  if(k==='kiosk') startScan(); else stopScan();
+  window.scrollTo(0,0); }
+function render(){ save();
+  ({kiosk:vKiosk,staff:vStaff,log:vLog,settings:vSettings})[tab](); }
+
+/* ================= KIOSK ================= */
+function vKiosk(){
+  document.getElementById('p-kiosk').innerHTML = `
+    <div class="kiosk">
+      <div class="klogo">
+        <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:var(--cy);fill:none;stroke-width:2">
+          <path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6l7-3z"/></svg>
+        <b>FACE GUARD · СКАНЕР</b>
+      </div>
+      <div class="kclock" id="kClock">--:--:--</div>
+      <div class="scanwrap" id="scanWrap">
+        <video id="vid" autoplay muted playsinline></video>
+        <canvas id="shot" style="display:none"></canvas>
+        <img id="shotImg" class="shot" style="display:none">
+        <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+        <div class="scanline" id="scanline"></div>
+        <div class="found-ring" id="foundRing"></div>
+        <div class="scanstate" id="scanState">камера запускается…</div>
+      </div>
+      <div id="resultZone"></div>
+      <div class="kiosklinks">
+        <button class="klink" onclick="openPicker()">Тізімнен таңдау</button>
+        <button class="klink" onclick="go('staff')">Басқару</button>
+      </div>
+    </div>`;
+  tickClock();
+}
+function tickClock(){
+  const el=document.getElementById('kClock'); if(!el) return;
+  const d=new Date();
+  el.textContent = `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+  requestAnimationFrame(()=>setTimeout(tickClock,250));
+}
+async function startScan(){
+  if(!DB.staff.length){
+    const sw=document.getElementById('scanState'); if(sw) sw.textContent='қызметкерлер қосылмаған';
+    return;
+  }
+  await ensureModels();
+  const vid=document.getElementById('vid'); if(!vid) return;
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:720}}});
+    vid.srcObject=stream;
+    setScanState('бетіңізді көрсетіңіз…');
+  }catch(e){
+    setScanState('камера қолжетімсіз');
+    document.getElementById('resultZone').innerHTML = `<div class="note err" style="max-width:360px;margin-top:16px">
+      Камераға рұқсат жоқ. Браузер баптауларынан рұқсат беріңіз, немесе
+      <button class="klink" style="margin-left:4px" onclick="openPicker()">тізімнен таңдаңыз</button>.</div>`;
+    return;
+  }
+  clearInterval(scanTimer);
+  scanTimer=setInterval(scanTick,650);
+}
+function stopScan(){
+  clearInterval(scanTimer); scanTimer=null;
+  if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
+}
+function setScanState(t){ const el=document.getElementById('scanState'); if(el) el.textContent=t; }
+let MODELS_LOADING=null;
+function ensureModels(){
+  if(modelsReady) return Promise.resolve();
+  if(MODELS_LOADING) return MODELS_LOADING;
+  setScanState('модельдер жүктелуде…');
+  MODELS_LOADING = Promise.all([
+    faceapi.nets.tinyFaceDetector.loadFromUri('./models'),
+    faceapi.nets.faceLandmark68Net.loadFromUri('./models'),
+    faceapi.nets.faceRecognitionNet.loadFromUri('./models'),
+  ]).then(()=>{ modelsReady=true; });
+  return MODELS_LOADING;
+}
+async function scanTick(){
+  if(pendingMatch) return; // уже показываем результат — не сканируем дальше
+  const vid=document.getElementById('vid'); if(!vid||vid.readyState<2) return;
+  try{
+    const det = await faceapi.detectSingleFace(vid, new faceapi.TinyFaceDetectorOptions({inputSize:224}))
+      .withFaceLandmarks().withFaceDescriptor();
+    if(!det){ stableCount=0; lastSeenId=null; setScanState('бетіңізді көрсетіңіз…'); hideRing(); return; }
+    const match = bestMatch(det.descriptor);
+    if(!match){ setScanState('танылмады — тізімнен таңдаңыз'); hideRing(); return; }
+    if(match.id===lastSeenId){ stableCount++; } else { lastSeenId=match.id; stableCount=1; }
+    setScanState(`анықталды: ${match.name}`);
+    showRing();
+    if(stableCount>=2){ confirmMatch(match.id, match.name); }
+  }catch(e){ /* кадр пропускаем молча */ }
+}
+function showRing(){ const r=document.getElementById('foundRing'); if(r) r.classList.add('on'); }
+function hideRing(){ const r=document.getElementById('foundRing'); if(r) r.classList.remove('on'); }
+function bestMatch(descriptor){
+  let best=null, bestD=999;
+  for(const s of DB.staff){
+    if(!s.descriptor) continue;
+    const d=faceapi.euclideanDistance(descriptor, s.descriptor);
+    if(d<bestD){ bestD=d; best=s; }
+  }
+  if(best && bestD<=DB.cfg.matchThreshold) return {id:best.id,name:best.name,dist:bestD};
+  return null;
+}
+function confirmMatch(id,name){
+  pendingMatch={id,name};
+  clearInterval(scanTimer);
+  const vid=document.getElementById('vid'), shotCanvas=document.getElementById('shot'), shotImg=document.getElementById('shotImg');
+  shotCanvas.width=240; shotCanvas.height=320;
+  const ctx=shotCanvas.getContext('2d');
+  ctx.translate(240,0); ctx.scale(-1,1);
+  ctx.drawImage(vid,0,0,240,320);
+  const url=shotCanvas.toDataURL('image/jpeg',0.72);
+  pendingMatch.shot=url;
+  vid.style.display='none'; shotImg.src=url; shotImg.style.display='block';
+  document.getElementById('scanline').style.display='none';
+  setScanState('расталсын ба?');
+  renderResult();
+}
+function renderResult(){
+  const d=dayOf(todayKey()), r=d[pendingMatch.id];
+  const alreadyIn = r && r.in && !r.out;
+  document.getElementById('resultZone').innerHTML = `
+    <div class="resultcard">
+      <div class="nm">${pendingMatch.name}</div>
+      <div class="tm">${nowHM()} · ${alreadyIn?'кетуді белгілеу':'келуді белгілеу'}</div>
+    </div>
+    <div class="bigbtns">
+      <button class="bigbtn in" onclick="markEvent('in')" ${alreadyIn?'style="opacity:.4" disabled':''}>
+        <svg viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h4"/><path d="M14 17l5-5-5-5"/><path d="M19 12H9"/></svg>
+        КЕЛДІМ</button>
+      <button class="bigbtn out" onclick="markEvent('out')" ${!alreadyIn?'style="opacity:.4" disabled':''}>
+        <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><path d="M10 17l-5-5 5-5"/><path d="M5 12h10"/></svg>
+        КЕТТІМ</button>
+    </div>
+    <button class="klink" style="margin-top:16px" onclick="cancelMatch()">Бұл мен емеспін</button>`;
+}
+function cancelMatch(){
+  pendingMatch=null; lastSeenId=null; stableCount=0;
+  const vid=document.getElementById('vid'), shotImg=document.getElementById('shotImg');
+  if(vid){vid.style.display='block';}
+  if(shotImg){shotImg.style.display='none';}
+  const sl=document.getElementById('scanline'); if(sl) sl.style.display='block';
+  document.getElementById('resultZone').innerHTML='';
+  hideRing();
+  clearInterval(scanTimer); scanTimer=setInterval(scanTick,650);
+}
+function markEvent(kind){
+  const sid=pendingMatch.id, k=todayKey(), r=recOf(k,sid);
+  const s=DB.staff.find(x=>x.id===sid);
+  if(s) s.lastPhoto=pendingMatch.shot;
+  if(kind==='in'){
+    r.in=nowHM();
+    const grace=DB.cfg.startHour*60+DB.cfg.startMin+DB.cfg.graceMin;
+    r.late = minsOf(r.in) > grace;
+  } else {
+    r.out=nowHM();
+    if(r.in && !r.overridden){
+      const a=minsOf(r.in), b=minsOf(r.out);
+      r.hoursAuto = b>=a ? (b-a)/60 : null;
+      r.hoursFinal = r.hoursAuto;
+    }
+  }
+  flashResult(kind, s?s.name:'');
+  render();
+}
+function flashResult(kind,name){
+  const f=document.getElementById('flash');
+  const ok=kind==='in';
+  f.innerHTML = `<div class="ic" style="background:${ok?'var(--grn)':'var(--red)'}">
+      <svg viewBox="0 0 24 24">${ok?'<path d="M20 6L9 17l-5-5"/>':'<path d="M18 6L6 18M6 6l12 12"/>'}</svg></div>
+    <b>${ok?'Сәтті тіркелді — КЕЛДІ':'Сәтті тіркелді — КЕТТІ'}</b>
+    <span>${name} · ${nowHM()}</span>`;
+  f.classList.add('on');
+  setTimeout(()=>{ f.classList.remove('on'); resumeScan(); },1600);
+}
+function resumeScan(){
+  pendingMatch=null; lastSeenId=null; stableCount=0;
+  const vid=document.getElementById('vid'); if(vid) vid.style.display='block';
+  const shotImg=document.getElementById('shotImg'); if(shotImg) shotImg.style.display='none';
+  const sl=document.getElementById('scanline'); if(sl) sl.style.display='block';
+  const rz=document.getElementById('resultZone'); if(rz) rz.innerHTML='';
+  hideRing(); setScanState('бетіңізді көрсетіңіз…');
+  clearInterval(scanTimer); scanTimer=setInterval(scanTick,650);
+}
+function openPicker(){
+  const active=DB.staff.slice().sort((a,b)=>a.name.localeCompare(b.name,'kk'));
+  sheet(`<div class="sh"><div><b>Тізімнен таңдау</b><span>егер камера танымаса</span></div>
+      <button class="x" onclick="closeSheet()">×</button></div>
+    <input id="pkSearch" placeholder="Іздеу…" oninput="filterPicker()" style="margin-bottom:10px">
+    <div class="picklist" id="pickList">${active.map(s=>pickRow(s)).join('')||'<div class="mini">Қызметкерлер жоқ</div>'}</div>`);
+}
+function pickRow(s){
+  return `<button class="pickrow" style="width:100%;text-align:left" onclick="pickStaff('${s.id}')">
+    ${s.photo?`<img src="${s.photo}">`:`<div style="width:40px;height:40px;border-radius:9px;background:var(--panel2)"></div>`}
+    <b>${s.name}</b></button>`;
+}
+function filterPicker(){
+  const q=document.getElementById('pkSearch').value.trim().toLowerCase();
+  const list=DB.staff.filter(s=>s.name.toLowerCase().includes(q)).sort((a,b)=>a.name.localeCompare(b.name,'kk'));
+  document.getElementById('pickList').innerHTML = list.map(pickRow).join('') || '<div class="mini">Табылмады</div>';
+}
+function pickStaff(id){
+  closeSheet();
+  const s=DB.staff.find(x=>x.id===id); if(!s) return;
+  clearInterval(scanTimer);
+  const vid=document.getElementById('vid');
+  pendingMatch={id:s.id,name:s.name,shot:s.lastPhoto||null};
+  if(vid) vid.style.display='none';
+  const shotImg=document.getElementById('shotImg');
+  if(shotImg){ if(pendingMatch.shot){shotImg.src=pendingMatch.shot; shotImg.style.display='block';} }
+  const sl=document.getElementById('scanline'); if(sl) sl.style.display='none';
+  setScanState('расталсын ба?');
+  renderResult();
+}
+
+/* ================= ҚЫЗМЕТКЕРЛЕР (СОТРУДНИКИ) ================= */
+function vStaff(){
+  document.getElementById('p-staff').innerHTML = `
+    <div class="pad">
+      <h2 class="t">Қызметкерлер</h2>
+      <p class="sub">Барлығы ${DB.staff.length} адам. Фотосурет арқылы қосыңыз — жүйе бетті өзі есте сақтайды.</p>
+      <button class="btn" onclick="addStaff()">+ Қызметкер қосу</button>
+      <div class="cols staff" style="margin-top:16px">
+        ${DB.staff.length ? DB.staff.map(s=>staffCard(s)).join('') :
+          '<div class="card"><div class="empty"><b>Тізім бос</b>Алғашқы қызметкерді қосыңыз.</div></div>'}
+      </div>
+    </div>`;
+}
+function staffCard(s){
+  const today=dayOf(todayKey())[s.id];
+  const here = today && today.in && !today.out;
+  return `<div class="scard">
+    ${s.photo?`<img class="av" src="${s.photo}">`:`<div class="av ph">нет фото</div>`}
+    <b>${s.name}</b>
+    <div class="st">
+      <span class="badge ${here?'b-ok':'b-dim'}">${here?'жұмыста':'жоқ'}</span>
+      <button class="x" onclick="editStaff('${s.id}')" aria-label="Өзгерту">✎</button>
+    </div>
+  </div>`;
+}
+function addStaff(id){
+  const s=id?DB.staff.find(x=>x.id===id):null;
+  sheet(`<div class="sh"><div><b>${s?'Қызметкер':'Жаңа қызметкер'}</b><span>анық, жарық жерде түсірілген фото</span></div>
+      <button class="x" onclick="closeSheet()">×</button></div>
+    <div style="text-align:center;margin-bottom:14px">
+      <img id="stPrev" src="${s?s.photo||'':''}" style="width:140px;height:140px;border-radius:16px;object-fit:cover;
+        background:var(--panel2);border:1px solid var(--line2);display:${s&&s.photo?'block':'none'};margin:0 auto 10px">
+      <input type="file" accept="image/*" capture="user" id="stFile" onchange="previewStaffPhoto()">
+    </div>
+    <div id="stFaceNote"></div>
+    <label class="f"><span>Аты-жөні</span><input id="stName" value="${s?s.name:''}" placeholder="Аты Тегі"></label>
+    <button class="btn" id="stSaveBtn" onclick="saveStaff('${id||''}')">Сақтау</button>
+    ${s?`<button class="btn gh" style="margin-top:10px" onclick="delStaff('${id}')">Жою</button>`:''}`);
+}
+function editStaff(id){ addStaff(id); }
+let stagedPhoto=null, stagedDescriptor=null;
+async function previewStaffPhoto(){
+  const f=document.getElementById('stFile').files[0]; if(!f) return;
+  const note=document.getElementById('stFaceNote'), prev=document.getElementById('stPrev'), btn=document.getElementById('stSaveBtn');
+  note.innerHTML='<div class="mini">Өңделуде…</div>'; btn.disabled=true;
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    const img=new Image();
+    img.onload=async ()=>{
+      const c=document.createElement('canvas'); const sz=320;
+      c.width=sz; c.height=sz;
+      const ctx=c.getContext('2d');
+      const side=Math.min(img.width,img.height);
+      ctx.drawImage(img,(img.width-side)/2,(img.height-side)/2,side,side,0,0,sz,sz);
+      const dataUrl=c.toDataURL('image/jpeg',0.82);
+      prev.src=dataUrl; prev.style.display='block';
+      try{
+        await ensureModels();
+        const det=await faceapi.detectSingleFace(c,new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+        if(!det){
+          note.innerHTML='<div class="note warn">Бет табылмады. Басқа, анығырақ фото таңдаңыз.</div>';
+          stagedPhoto=dataUrl; stagedDescriptor=null;
+        } else {
+          note.innerHTML='<div class="note">Бет танылды, сақтауға дайын.</div>';
+          stagedPhoto=dataUrl; stagedDescriptor=Array.from(det.descriptor);
+        }
+      }catch(err){ note.innerHTML='<div class="note err">Қате: '+err.message+'</div>'; }
+      btn.disabled=false;
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(f);
+}
+function saveStaff(id){
+  const name=document.getElementById('stName').value.trim();
+  if(!name){ alert('Атын енгізіңіз'); return; }
+  if(id){
+    const s=DB.staff.find(x=>x.id===id); s.name=name;
+    if(stagedPhoto){ s.photo=stagedPhoto; if(stagedDescriptor) s.descriptor=stagedDescriptor; }
+  } else {
+    if(!stagedDescriptor){ alert('Алдымен бетті таныту үшін анық фото жүктеңіз'); return; }
+    DB.staff.push({id:'p'+Date.now()+Math.floor(Math.random()*999),name,photo:stagedPhoto,descriptor:stagedDescriptor,lastPhoto:null});
+  }
+  stagedPhoto=null; stagedDescriptor=null;
+  closeSheet(); render();
+}
+function delStaff(id){
+  if(!confirm('Бұл қызметкерді жою керек пе? Барлық күнделік жазбалары қалады, бірақ атымен байланыс үзіледі.'))return;
+  DB.staff=DB.staff.filter(x=>x.id!==id);
+  closeSheet(); render();
+}
+
+/* ================= КҮНДЕЛІК (ЖУРНАЛ) ================= */
+let logDate = todayKey();
+function vLog(){
+  const d=dayOf(logDate);
+  const rows=DB.staff.map(s=>({s,r:d[s.id]||null})).sort((a,b)=>a.s.name.localeCompare(b.s.name,'kk'));
+  document.getElementById('p-log').innerHTML = `
+    <div class="pad">
+      <h2 class="t">Күнделік</h2>
+      <p class="sub">Келу, кету және сағат — күн бойынша. Түзету үшін жолды басыңыз.</p>
+      <label class="f" style="max-width:220px"><span>Күн</span>
+        <input type="date" value="${logDate}" onchange="logDate=this.value;render()"></label>
+      <div class="kpis">
+        <div class="kpi"><small>Жұмыста болды</small><b>${rows.filter(x=>x.r&&x.r.in).length}</b></div>
+        <div class="kpi"><small>Кешіккен</small><b>${rows.filter(x=>x.r&&x.r.late).length}</b></div>
+        <div class="kpi"><small>Түзетілген</small><b>${rows.filter(x=>x.r&&x.r.overridden).length}</b></div>
+      </div>
+      ${rows.length ? rows.map(({s,r})=>logRow(s,r)).join('') :
+        '<div class="card"><div class="empty"><b>Қызметкер жоқ</b></div></div>'}
+    </div>`;
+}
+function logRow(s,r){
+  const has = !!r;
+  return `<div class="card" style="cursor:pointer" onclick="editLog('${s.id}')">
+    <div class="rowitem" style="border:none;padding:0">
+      <div class="main"><b>${s.name}</b>
+        <span>${has&&r.in?('келді '+r.in):'белгі жоқ'}${has&&r.out?(' · кетті '+r.out):''}</span></div>
+      <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+        ${has&&r.late?'<span class="badge b-no">кешікті</span>':''}
+        ${has&&r.overridden?'<span class="badge b-amb">түзетілген</span>':''}
+        <span class="badge b-cy mono">${has?fmtHours(r.hoursFinal):'—'} сағ</span>
+      </div>
+    </div>
+    ${has&&r.reason?`<div class="mini" style="margin-top:8px">себеп: ${r.reason}</div>`:''}
+  </div>`;
+}
+function editLog(sid){
+  const s=DB.staff.find(x=>x.id===sid), r=recOf(logDate,sid);
+  sheet(`<div class="sh"><div><b>${s.name}</b><span>${logDate}</span></div>
+      <button class="x" onclick="closeSheet()">×</button></div>
+    <div class="cols two" style="margin-bottom:4px">
+      <label class="f"><span>Келу уақыты</span><input type="time" id="lgIn" value="${r.in||''}"></label>
+      <label class="f"><span>Кету уақыты</span><input type="time" id="lgOut" value="${r.out||''}"></label>
+    </div>
+    <label class="f"><span>Есептелген сағат (түзетуге болады)</span>
+      <input type="number" step="0.1" id="lgHours" value="${r.hoursFinal??''}" placeholder="авто есептеледі"></label>
+    <label class="f"><span>Себеп</span><select id="lgReasonSel" onchange="toggleReasonText()">
+      <option value="">— таңдау —</option>
+      <option value="Сұранып кетті" ${r.reason==='Сұранып кетті'?'selected':''}>Сұранып кетті</option>
+      <option value="Ауырды" ${r.reason==='Ауырды'?'selected':''}>Ауырды</option>
+      <option value="Дәлелді себеппен кешікті" ${r.reason==='Дәлелді себеппен кешікті'?'selected':''}>Дәлелді себеппен кешікті</option>
+      <option value="Демалыс күні" ${r.reason==='Демалыс күні'?'selected':''}>Демалыс күні</option>
+      <option value="own" ${r.reason&&!['Сұранып кетті','Ауырды','Дәлелді себеппен кешікті','Демалыс күні'].includes(r.reason)?'selected':''}>Өз себебі…</option>
+    </select></label>
+    <div id="lgOwnWrap" style="display:${r.reason&&!['Сұранып кетті','Ауырды','Дәлелді себеппен кешікті','Демалыс күні',''].includes(r.reason)?'block':'none'}">
+      <label class="f"><span>Себебі (өз сөзіңізбен)</span><textarea id="lgOwnText" rows="2">${r.reason&&!['Сұранып кетті','Ауырды','Дәлелді себеппен кешікті','Демалыс күні'].includes(r.reason)?r.reason:''}</textarea></label>
+    </div>
+    <div class="rowbtns" style="margin-top:6px">
+      <button class="btn" onclick="saveLog('${sid}')">Сақтау</button>
+      <button class="btn gh" onclick="clearLog('${sid}')">Тазарту</button>
+    </div>`);
+}
+function toggleReasonText(){
+  const v=document.getElementById('lgReasonSel').value;
+  document.getElementById('lgOwnWrap').style.display = v==='own' ? 'block':'none';
+}
+function saveLog(sid){
+  const r=recOf(logDate,sid);
+  r.in=document.getElementById('lgIn').value||null;
+  r.out=document.getElementById('lgOut').value||null;
+  const hv=document.getElementById('lgHours').value;
+  const sel=document.getElementById('lgReasonSel').value;
+  r.reason = sel==='own' ? document.getElementById('lgOwnText').value.trim() : sel;
+  if(hv!==''){ r.hoursFinal=+hv; r.overridden=true; }
+  else if(r.in&&r.out){ const a=minsOf(r.in),b=minsOf(r.out); r.hoursAuto=b>=a?(b-a)/60:null; r.hoursFinal=r.hoursAuto; r.overridden=false; }
+  if(r.in){ const grace=DB.cfg.startHour*60+DB.cfg.startMin+DB.cfg.graceMin; r.late = minsOf(r.in) > grace; }
+  closeSheet(); render();
+}
+function clearLog(sid){
+  if(!confirm('Осы күнгі жазбаны тазарту керек пе?'))return;
+  delete dayOf(logDate)[sid];
+  closeSheet(); render();
+}
+
+/* ================= БАПТАУЛАР (НАСТРОЙКИ) ================= */
+function vSettings(){
+  document.getElementById('p-settings').innerHTML = `
+    <div class="pad">
+      <h2 class="t">Баптаулар</h2>
+      <h3 class="s">Жұмыс уақыты</h3>
+      <div class="card">
+        <div class="cols two">
+          <label class="f"><span>Басталу уақыты</span><input type="time" id="cfgStart"
+            value="${pad2(DB.cfg.startHour)}:${pad2(DB.cfg.startMin)}"></label>
+          <label class="f"><span>Рұқсат етілген, мин</span><input type="number" id="cfgGrace" value="${DB.cfg.graceMin}"></label>
+        </div>
+        <div class="note">Осы уақыттан ${DB.cfg.graceMin} минуттан кеш келу — кешігу болып саналады.</div>
+        <div style="margin-top:12px"><button class="btn gh sm" onclick="saveCfg()">Сақтау</button></div>
+      </div>
+
+      <h3 class="s">Тану дәлдігі</h3>
+      <div class="card">
+        <label class="f"><span>Сезімталдық (төмен — қатаң, жоғары — жұмсақ)</span>
+          <input type="range" min="0.4" max="0.62" step="0.01" id="cfgThresh" value="${DB.cfg.matchThreshold}"
+            oninput="document.getElementById('cfgThreshVal').textContent=this.value"></label>
+        <div class="mini mono">мәні: <span id="cfgThreshVal">${DB.cfg.matchThreshold}</span></div>
+        <div style="margin-top:12px"><button class="btn gh sm" onclick="saveThresh()">Сақтау</button></div>
+      </div>
+
+      <h3 class="s">Ортақ база</h3>
+      <div class="card">
+        ${cloudOn()?`<div class="rowitem" style="border:none">
+            <div class="main"><b>${AUTH.email||'—'}</b><span id="cloudStateTxt">${({ok:'синхрон.',sync:'жіберілуде',err:'байланыс жоқ',off:'өшірулі'})[CLOUD.state]}</span></div>
+            <button class="btn gh sm" onclick="logout()">Шығу</button></div>`
+          :`<div class="mini">Supabase деректері index.html файлында көрсетілмеген — тек осы құрылғыда сақталады.</div>`}
+      </div>
+
+      <h3 class="s">Деректер</h3>
+      <div class="card">
+        <div class="rowbtns">
+          <button class="btn gh sm" onclick="exportJson()">Файлға сақтау</button>
+          <button class="btn gh sm" onclick="document.getElementById('impFile').click()">Файлдан жүктеу</button>
+        </div>
+        <input type="file" id="impFile" accept=".json" style="display:none" onchange="importJson(this)">
+        <div style="margin-top:12px"><button class="del" style="color:var(--red);font-size:13px;font-weight:700" onclick="wipeAll()">Барлық деректі жою</button></div>
+      </div>
+    </div>`;
+}
+function saveCfg(){
+  const [h,m]=document.getElementById('cfgStart').value.split(':').map(Number);
+  DB.cfg.startHour=h; DB.cfg.startMin=m; DB.cfg.graceMin=+document.getElementById('cfgGrace').value||15;
+  render();
+}
+function saveThresh(){ DB.cfg.matchThreshold=+document.getElementById('cfgThresh').value; render(); }
+function exportJson(){
+  const b=new Blob([JSON.stringify(DB,null,1)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(b);
+  a.download=`FaceGuard_${todayKey()}.json`; a.click(); URL.revokeObjectURL(a.href);
+}
+function importJson(el){
+  const f=el.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=e=>{ try{ const o=JSON.parse(e.target.result);
+    if(!o.staff) throw new Error('файл форматы сәйкес емес');
+    DB.staff=o.staff||[]; DB.days=o.days||{}; DB.cfg=Object.assign({...CFG_DEFAULT},o.cfg||{});
+    render(); alert('Жүктелді');
+  }catch(err){ alert('Қате: '+err.message); } };
+  rd.readAsText(f);
+}
+function wipeAll(){
+  if(!confirm('Барлық қызметкерлер мен жазбалар жойылады. Жалғастыру керек пе?'))return;
+  DB.staff=[]; DB.days={}; DB.cfg={...CFG_DEFAULT}; render();
+}
+
+/* ================= SHEET ================= */
+let sy=0;
+function sheet(html){
+  document.getElementById('sheet').innerHTML=html;
+  document.getElementById('ov').classList.add('on');
+  sy=window.scrollY;
+  document.body.style.position='fixed'; document.body.style.top=-sy+'px';
+  document.body.style.left='0'; document.body.style.right='0';
+}
+function closeSheet(){
+  document.getElementById('ov').classList.remove('on');
+  document.body.style.position=''; document.body.style.top='';
+  document.body.style.left=''; document.body.style.right='';
+  window.scrollTo(0,sy);
+}
+
+/* ================= СТАРТ ================= */
+function boot2(){ drawNav(); go('kiosk'); syncBadge(); }
+load();
+if(cloudOn()){ cloudStart(); if(AUTH.token){ document.getElementById('shellApp').style.display='flex'; boot2(); } }
+else { document.getElementById('shellApp').style.display='flex'; boot2(); }
+</script>
+</body>
+</html>
