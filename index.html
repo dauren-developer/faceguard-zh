@@ -400,6 +400,8 @@ function vKiosk(){
       </div>
     </div>`;
   tickClock();
+  if(stream){ const v=document.getElementById('vid'); if(v && v.srcObject!==stream){ v.srcObject=stream; setScanState('бетіңізді көрсетіңіз…'); } }
+  else if(DB.staff.length){ startScan(); }
 }
 function tickClock(){
   const el=document.getElementById('kClock'); if(!el) return;
