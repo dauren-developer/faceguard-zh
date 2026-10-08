@@ -616,7 +616,7 @@ function addStaff(id){
     <div style="text-align:center;margin-bottom:14px">
       <img id="stPrev" src="${s?s.photo||'':''}" style="width:140px;height:140px;border-radius:16px;object-fit:cover;
         background:var(--panel2);border:1px solid var(--line2);display:${s&&s.photo?'block':'none'};margin:0 auto 10px">
-      <input type="file" accept="image/*" capture="user" id="stFile" onchange="previewStaffPhoto()">
+      <input type="file" accept="image/*" id="stFile" onchange="previewStaffPhoto()">
     </div>
     <div id="stFaceNote"></div>
     <label class="f"><span>Аты-жөні</span><input id="stName" value="${s?s.name:''}" placeholder="Аты Тегі"></label>
@@ -851,5 +851,8 @@ load();
 if(cloudOn()){ cloudStart(); if(AUTH.token){ document.getElementById('shellApp').style.display='flex'; boot2(); } }
 else { document.getElementById('shellApp').style.display='flex'; boot2(); }
 </script>
+</body>
+</html>
+
 </body>
 </html>
