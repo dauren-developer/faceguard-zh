@@ -3,24 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#07090D">
+<meta name="theme-color" content="#F4F1E8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Face ID">
 <title>Face ID</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="face-api.min.js"></script>
 <style>
 :root{
-  --bg:#07090D; --bg2:#0C0F15; --panel:#11151C; --panel2:#161B24;
-  --line:#232933; --line2:#2E3642;
-  --ink:#E7ECF3; --mut:#7E8A9C; --mut2:#515C6B;
-  --cy:#2FE0C9; --cy-d:#17B39E; --cy-l:rgba(47,224,201,.12);
-  --grn:#3DD16F; --red:#FF5A5F; --amb:#FFB547;
-  --disp:'Space Grotesk',system-ui,sans-serif;
-  --mono:'JetBrains Mono',ui-monospace,monospace;
-  --body:'Inter',system-ui,sans-serif;
+  --bg:#F4F1E8; --bg2:#FBFAF4; --panel:#FFFFFF; --panel2:#ECE7D8;
+  --line:#E3DDC9; --line2:#D9D2B8;
+  --ink:#1F2D1A; --mut:#6B6456; --mut2:#9B9484;
+  --cy:#3F6B2E; --cy-d:#2F5322; --cy-l:rgba(63,107,46,.12);
+  --grn:#3F6B2E; --red:#C64B42; --amb:#B9812E;
+  --disp:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter',system-ui,sans-serif;
+  --mono:ui-monospace,'SF Mono',monospace;
+  --body:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',system-ui,sans-serif;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
 html{-webkit-text-size-adjust:100%}
@@ -33,47 +30,48 @@ input{-webkit-user-select:text;user-select:text}
   padding:22px 18px 28px;position:relative}
 .top{display:flex;align-items:center;gap:11px;margin-bottom:22px}
 .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(145deg,var(--cy),var(--cy-d));
-  display:grid;place-items:center;flex:none;box-shadow:0 0 0 1px rgba(47,224,201,.3),0 0 18px rgba(47,224,201,.25)}
-.logo svg{width:20px;height:20px;stroke:#04110E;fill:none;stroke-width:2.1}
-.top b{font-family:var(--disp);font-weight:700;font-size:17px;letter-spacing:.03em}
-.top span{display:block;font-family:var(--mono);font-size:10.5px;color:var(--mut);letter-spacing:.08em;text-transform:uppercase}
+  display:grid;place-items:center;flex:none;box-shadow:0 1px 3px rgba(31,45,26,.1),0 0 16px rgba(63,107,46,.18)}
+.logo svg{width:20px;height:20px;stroke:#FAF8F0;fill:none;stroke-width:2.1}
+.top b{font-weight:600;font-size:17px;letter-spacing:-0.01em}
+.top span{display:block;font-size:11px;color:var(--mut);letter-spacing:.02em}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px}
 .center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px}
 .hint{font-size:13px;color:var(--mut);line-height:1.5}
-.big{font-family:var(--disp);font-weight:700;font-size:20px;letter-spacing:.01em}
+.big{font-weight:600;font-size:20px;letter-spacing:-0.01em}
 .spin{width:38px;height:38px;border-radius:50%;border:3px solid var(--line2);border-top-color:var(--cy);
   animation:sp 0.8s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
-.ic{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;flex:none}
-.ic svg{width:30px;height:30px;fill:none;stroke-width:2.2}
-.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;border-radius:13px;
-  font-weight:700;font-size:15px;background:linear-gradient(145deg,var(--cy),var(--cy-d));color:#04110E;
-  box-shadow:0 0 0 1px rgba(47,224,201,.3),0 6px 18px rgba(47,224,201,.2)}
+.ic{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--panel);
+  box-shadow:0 1px 3px rgba(31,45,26,.06),0 14px 30px -8px rgba(31,45,26,.1)}
+.ic svg{width:30px;height:30px;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:16px;border-radius:14px;
+  font-weight:600;font-size:16px;letter-spacing:-0.01em;background:var(--cy);color:#FAF8F0;
+  box-shadow:0 1px 2px rgba(31,45,26,.1)}
 .btn:disabled{opacity:.4}
-.btn.gh{background:var(--panel2);color:var(--ink);box-shadow:none;border:1px solid var(--line2)}
+.btn.gh{background:transparent;color:var(--mut);box-shadow:none}
 .link{color:var(--mut);font-size:13px;text-decoration:underline;margin-top:6px}
 .search{width:100%;padding:13px;border:1px solid var(--line2);border-radius:11px;background:var(--panel2);color:var(--ink);margin-bottom:12px}
 .picklist{display:flex;flex-direction:column;gap:7px;max-height:52vh;overflow-y:auto}
-.pickrow{display:flex;align-items:center;gap:11px;padding:12px;border-radius:12px;background:var(--panel2);
-  border:1px solid var(--line2);width:100%;text-align:left}
-.pickrow b{flex:1;font-weight:600;font-size:14.5px}
-.scanwrap{position:relative;width:100%;max-width:300px;aspect-ratio:3/4;border-radius:20px;overflow:hidden;
-  background:#000;margin:0 auto 14px;border:1px solid var(--line2)}
+.pickrow{display:flex;align-items:center;gap:11px;padding:12px;border-radius:12px;background:var(--panel);
+  border:1px solid var(--line);width:100%;text-align:left}
+.pickrow b{flex:1;font-weight:500;font-size:14.5px}
+.scanwrap{position:relative;width:100%;max-width:300px;aspect-ratio:3/4;border-radius:22px;overflow:hidden;
+  background:#000;margin:0 auto 14px;box-shadow:0 1px 3px rgba(31,45,26,.08),0 20px 40px -10px rgba(31,45,26,.18)}
 .scanwrap video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
 .scanwrap img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
 .scanstate{position:absolute;left:0;right:0;bottom:10px;text-align:center;font-size:12px;color:#fff;
-  background:rgba(0,0,0,.45);padding:6px 0;font-family:var(--mono)}
-.foundring{position:absolute;inset:8px;border-radius:16px;border:3px solid var(--grn);opacity:0;transition:opacity .2s}
+  background:rgba(0,0,0,.45);padding:6px 0}
+.foundring{position:absolute;inset:8px;border-radius:18px;border:3px solid #6FD66B;opacity:0;transition:opacity .2s}
 .foundring.on{opacity:1}
 .resultcard{text-align:center;margin-bottom:16px}
-.resultcard .nm{font-family:var(--disp);font-weight:700;font-size:19px}
-.resultcard .tm{font-family:var(--mono);font-size:12.5px;color:var(--mut);margin-top:3px}
+.resultcard .nm{font-weight:600;font-size:19px;letter-spacing:-0.01em}
+.resultcard .tm{font-size:12.5px;color:var(--mut);margin-top:3px}
 .bigbtns{display:flex;gap:10px;width:100%}
 .bigbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 8px;border-radius:14px;
-  font-weight:700;font-size:13px;letter-spacing:.03em}
-.bigbtn svg{width:22px;height:22px;fill:none;stroke-width:2}
-.bigbtn.in{background:var(--cy-l);color:var(--cy);border:1px solid rgba(47,224,201,.35)}
-.bigbtn.out{background:rgba(255,90,95,.12);color:var(--red);border:1px solid rgba(255,90,95,.3)}
+  font-weight:600;font-size:13px;letter-spacing:.01em}
+.bigbtn svg{width:22px;height:22px;fill:none;stroke-width:1.8}
+.bigbtn.in{background:var(--cy-l);color:var(--cy)}
+.bigbtn.out{background:rgba(198,75,66,.1);color:var(--red)}
 .footlink{text-align:center;margin-top:18px}
 .footlink button{font-size:12px;color:var(--mut2);text-decoration:underline}
 </style>
@@ -168,14 +166,14 @@ function renderLoading(txt){
 }
 function renderError(txt,retryFn){
   app().innerHTML = header()+`<div class="center">
-    <div class="ic" style="background:rgba(255,90,95,.14)"><svg viewBox="0 0 24 24" style="stroke:var(--red)"><path d="M18 6L6 18M6 6l12 12"/></svg></div>
+    <div class="ic"><svg viewBox="0 0 24 24" style="stroke:var(--red)"><path d="M18 6L6 18M6 6l12 12"/></svg></div>
     <div class="hint">${txt}</div>
     <button class="btn" style="max-width:220px" onclick="${retryFn||'main()'}">Қайталау</button>
   </div>`+footSwitch();
 }
 function renderBlocked(txt){
   app().innerHTML = header('Wi-Fi тексерісі')+`<div class="center">
-    <div class="ic" style="background:rgba(255,181,71,.14)"><svg viewBox="0 0 24 24" style="stroke:var(--amb)">${ICON_WIFI}</svg></div>
+    <div class="ic"><svg viewBox="0 0 24 24" style="stroke:var(--amb)">${ICON_WIFI}</svg></div>
     <div class="big">Wi-Fi қажет</div>
     <div class="hint">${txt}</div>
     <button class="btn" style="max-width:240px" onclick="checkGateAndProceed()">Қайта тексеру</button>
@@ -324,7 +322,7 @@ async function mark(kind){
 function renderFlash(kind,name){
   const ok=kind==='in';
   app().innerHTML = header()+`<div class="center">
-    <div class="ic" style="background:${ok?'rgba(61,209,111,.16)':'rgba(255,90,95,.14)'}">
+    <div class="ic">
       <svg viewBox="0 0 24 24" style="stroke:${ok?'var(--grn)':'var(--red)'}">${ok?ICON_OK:'<path d="M18 6L6 18M6 6l12 12"/>'}</svg></div>
     <div class="big">${ok?'Сәтті тіркелді — КЕЛДІ':'Сәтті тіркелді — КЕТТІ'}</div>
     <div class="hint">${name} · ${nowHM()}</div>
