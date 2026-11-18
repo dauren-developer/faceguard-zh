@@ -239,7 +239,7 @@ select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,va
    Отдельный продукт поверх общей базы Supabase с системой «Жаксылык»
    ============================================================ */
 
-const CFG_DEFAULT = { startHour:9, startMin:0, graceMin:15, matchThreshold:0.52 };
+const CFG_DEFAULT = { startHour:9, startMin:0, graceMin:15, matchThreshold:0.52, wifiIP:'' };
 const SCHED_DAYS = ['Дс','Сс','Ср','Бс','Жм','Сн','Жс'];
 function dayIdxOf(k){ const d=new Date(k+'T00:00:00'); return (d.getDay()+6)%7; }
 function graceFor(sid,k){
@@ -934,6 +934,19 @@ function vSettings(){
           Аты-жөні жүйедегі қызметкерлермен сәйкес болуы керек.</div>
       </div>
 
+      <h3 class="s">Жеке Face ID (әр телефонда)</h3>
+      <div class="card">
+        <div class="mini">Әр қызметкер осы сілтемені өз телефонында ашады:</div>
+        <div class="mini mono" style="word-break:break-all;margin:6px 0 10px;color:var(--cy)">${location.href.replace(/index\.html.*$/,'')}my.html</div>
+        <button class="btn gh sm" onclick="copyMyLink()">Сілтемені көшіру</button>
+        <div class="hint" style="margin-top:10px">Тек кафедегі Wi-Fi-ға қосылған кезде ғана жұмыс істейді.</div>
+        <div class="rowitem" style="border:none;margin-top:10px">
+          <div class="main"><b>Сақталған Wi-Fi</b><span>${DB.cfg.wifiIP?DB.cfg.wifiIP:'бапталмаған'}</span></div>
+          <button class="btn gh sm" id="wifiBtn" onclick="rememberWifi()">Есте сақтау</button>
+        </div>
+        <div class="hint" style="margin-top:8px">Осы түймені кафедегі Wi-Fi-ға қосылған кезде басыңыз (мыс., осы ноутбуктан).</div>
+      </div>
+
       ${devUnlocked?`<h3 class="s">Тану дәлдігі</h3>
       <div class="card">
         <label class="f"><span>Сезімталдық (төмен — қатаң, жоғары — жұмсақ)</span>
@@ -968,6 +981,23 @@ function saveCfg(){
   render();
 }
 function saveThresh(){ DB.cfg.matchThreshold=+document.getElementById('cfgThresh').value; render(); }
+function copyMyLink(){
+  const link=location.href.replace(/index\.html.*$/,'')+'my.html';
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(link).then(()=>alert('Көшірілді:\n'+link)).catch(()=>alert(link)); }
+  else alert(link);
+}
+async function rememberWifi(){
+  const btn=document.getElementById('wifiBtn'); if(btn){btn.disabled=true;btn.textContent='…';}
+  try{
+    const r=await fetch('https://api.ipify.org?format=json');
+    const j=await r.json();
+    if(!j.ip) throw new Error('no ip');
+    DB.cfg.wifiIP=j.ip;
+    render();
+    alert('Сақталды: '+j.ip);
+  }catch(e){ alert('IP анықтау мүмкін болмады. Интернетті тексеріңіз.'); }
+  const b=document.getElementById('wifiBtn'); if(b){b.disabled=false;b.textContent='Есте сақтау';}
+}
 let devUnlocked=false, devTapCount=0, devTapT=null;
 const DEV_CODE='2024dauren';
 function devTapLogo(){
